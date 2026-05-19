@@ -7,24 +7,19 @@ dotenv.config();
 
 const app = express();
 
-// ✅ PROPER CORS CONFIGURATION - Allow Netlify frontend
+// ✅ CORS Configuration using environment variable
 const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
+  process.env.CORS_ORIGIN,
   'https://boisterous-lollipop-2d37dd.netlify.app',
-  'https://zingy-mousse-0e8120.netlify.app',
-  'https://*.netlify.app'
-];
+  'https://*.netlify.app',
+  'http://localhost:5173'
+].filter(Boolean);
 
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    }
-    // Allow any netlify.app subdomain
-    if (origin && origin.endsWith('.netlify.app')) {
+    if (allowedOrigins.some(allowed => origin === allowed || origin.endsWith('.netlify.app'))) {
       return callback(null, true);
     }
     console.log('Blocked origin:', origin);
@@ -68,4 +63,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 http://localhost:${PORT}`);
+  console.log(`🔗 CORS allowed origins:`, allowedOrigins);
 });
