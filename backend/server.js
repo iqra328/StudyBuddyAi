@@ -7,9 +7,25 @@ dotenv.config();
 
 const app = express();
 
+// ✅ PROPER CORS CONFIGURATION
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://dashing-alpaca-03c447.netlify.app',
+    'https://*.netlify.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Handle preflight requests
+app.options('*', cors());
+
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -18,10 +34,10 @@ app.get('/api/test', (req, res) => {
 
 // ✅ ALL ROUTES ENABLED
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/notes', require('./routes/notes'));     // Enable karo
-app.use('/api/ai', require('./routes/ai'));           // Enable karo
-app.use('/api/user', require('./routes/user'));       // Enable karo
-app.use('/api/history', require('./routes/history')); // Enable karo - NAYA ROUTE
+app.use('/api/notes', require('./routes/notes'));
+app.use('/api/ai', require('./routes/ai'));
+app.use('/api/user', require('./routes/user'));
+app.use('/api/history', require('./routes/history'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
