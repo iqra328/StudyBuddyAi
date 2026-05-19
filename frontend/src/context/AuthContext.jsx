@@ -6,7 +6,11 @@ const AuthContext = createContext()
 
 export const useAuth = () => useContext(AuthContext)
 
-const API = 'http://localhost:5000/api'
+// ✅ Production API URL - COMMENT OUT old one, USE this
+const API = 'https://studybuddyai-1.onrender.com/api'
+// const API = 'http://localhost:5000/api'  // <- COMMENT THIS LINE
+
+console.log('🔧 Using API URL:', API) // Debug check
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -44,11 +48,8 @@ export const AuthProvider = ({ children }) => {
       
       const { token, user } = response.data
       
-      // Save token
       localStorage.setItem('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      
-      // Update state
       setToken(token)
       setUser(user)
       
@@ -69,11 +70,8 @@ export const AuthProvider = ({ children }) => {
       
       const { token, user } = response.data
       
-      // Save token
       localStorage.setItem('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      
-      // Update state
       setToken(token)
       setUser(user)
       
