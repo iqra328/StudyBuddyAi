@@ -108,7 +108,8 @@ const Profile = () => {
   const memberSince = stats.joinDate ? new Date(stats.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2024'
 
   return (
-   <div style={{ marginLeft: '280px', padding: '30px', minHeight: '100vh' }}>
+    <div className="dashboard-container">
+      <Sidebar />
       
       {/* Main Content with margin to avoid sidebar overlap */}
       <div style={{ marginLeft: '280px', padding: '30px', minHeight: '100vh' }}>
