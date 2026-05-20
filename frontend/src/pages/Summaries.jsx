@@ -95,7 +95,7 @@ const Summaries = () => {
     return (
       <div className="dashboard-container">
         <Sidebar />
-        <div className="dashboard-main">
+        <div style={{ marginLeft: '280px', padding: '30px' }}>
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
           </div>
@@ -108,99 +108,135 @@ const Summaries = () => {
     <div className="dashboard-container">
       <Sidebar />
       
-      <div className="dashboard-main">
+      {/* Main Content - with margin to avoid sidebar overlap */}
+      <div style={{ marginLeft: '280px', padding: '30px', minHeight: '100vh' }}>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-white">AI Summaries</h1>
-          <p className="text-white/70 mt-2">Generate smart summaries from your notes</p>
+          <h1 className="text-3xl font-bold text-white">🤖 AI Summaries</h1>
+          <p className="text-white/70 mt-2">Generate smart summaries from your study notes</p>
         </motion.div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Notes List */}
+          {/* Notes List Panel */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6"
+            className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden"
           >
-            <h2 className="text-xl font-bold text-white mb-4">Your Notes</h2>
-            {notes.length === 0 ? (
-              <div className="text-center py-8 text-white/60">No notes found. Upload some notes first.</div>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {notes.map((note) => (
-                  <div 
-                    key={note._id}
-                    onClick={() => {
-                      setSelectedNote(note)
-                      setSummary(note.summary?.detailed || '')
-                    }}
-                    className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      selectedNote?._id === note._id 
-                        ? 'bg-purple-600/40 border border-purple-500' 
-                        : 'bg-white/5 hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">{note.title}</p>
-                        <p className="text-white/50 text-sm">
-                          {new Date(note.uploadedAt).toLocaleDateString()}
-                        </p>
+            <div className="p-5 border-b border-white/10">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                📚 Your Notes
+                <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{notes.length}</span>
+              </h2>
+            </div>
+            
+            <div className="p-4" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              {notes.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-3">📭</div>
+                  <p className="text-white/60">No notes found</p>
+                  <p className="text-white/40 text-sm mt-1">Upload some notes first</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {notes.map(note => (
+                    <div 
+                      key={note._id}
+                      onClick={() => {
+                        setSelectedNote(note)
+                        setSummary(note.summary?.detailed || '')
+                      }}
+                      className={`p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                        selectedNote?._id === note._id 
+                          ? 'bg-purple-600/40 border border-purple-500' 
+                          : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="text-white font-medium">{note.title}</p>
+                          <p className="text-white/40 text-xs mt-1">
+                            {new Date(note.uploadedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        {note.summary?.detailed && (
+                          <span className="text-green-400 text-xs bg-green-400/10 px-2 py-1 rounded-full">
+                            ✅ Done
+                          </span>
+                        )}
                       </div>
-                      {note.summary?.detailed && (
-                        <span className="text-green-400 text-sm">✅ Summarized</span>
-                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
           
-          {/* Summary Area */}
+          {/* Summary Panel */}
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6"
+            className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden"
           >
-            <h2 className="text-xl font-bold text-white mb-4">AI Generated Summary</h2>
-            {selectedNote ? (
-              <>
-                <p className="text-white/80 mb-4">Selected: <span className="font-semibold">{selectedNote.title}</span></p>
-                {!summary && !selectedNote.summary?.detailed && (
-                  <button 
-                    onClick={() => generateSummary(selectedNote)}
-                    disabled={generating}
-                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold mb-4 disabled:opacity-50"
-                  >
-                    {generating ? 'Generating...' : 'Generate Summary'}
-                  </button>
-                )}
-                
-                {(summary || selectedNote.summary?.detailed) && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-white/10 rounded-lg max-h-96 overflow-y-auto">
-                      <p className="text-white leading-relaxed whitespace-pre-wrap">
-                        {summary || selectedNote.summary?.detailed}
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <button onClick={copySummary} className="flex-1 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all">
-                        Copy
-                      </button>
-                      <button onClick={downloadSummary} className="flex-1 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all">
-                        Download
-                      </button>
-                    </div>
+            <div className="p-5 border-b border-white/10">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                ✨ AI Generated Summary
+              </h2>
+            </div>
+            
+            <div className="p-5">
+              {selectedNote ? (
+                <>
+                  <div className="mb-4 p-3 bg-purple-600/20 rounded-xl border border-purple-500/30">
+                    <p className="text-purple-300 text-sm">Selected Note</p>
+                    <p className="text-white font-medium">{selectedNote.title}</p>
                   </div>
-                )}
-              </>
-            ) : (
-              <p className="text-white/60 text-center py-8">Select a note to generate summary</p>
-            )}
+                  
+                  {!summary && !selectedNote.summary?.detailed && (
+                    <button 
+                      onClick={() => generateSummary(selectedNote)}
+                      disabled={generating}
+                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+                    >
+                      {generating ? '🤖 Generating...' : '✨ Generate Summary'}
+                    </button>
+                  )}
+                  
+                  {(summary || selectedNote.summary?.detailed) && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-white/5 rounded-xl" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                        <p className="text-white/90 leading-relaxed whitespace-pre-wrap">
+                          {summary || selectedNote.summary?.detailed}
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={copySummary} 
+                          className="flex-1 py-2.5 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                        >
+                          📋 Copy
+                        </button>
+                        <button 
+                          onClick={downloadSummary} 
+                          className="flex-1 py-2.5 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                        >
+                          💾 Download
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📝</div>
+                  <p className="text-white/60">Select a note</p>
+                  <p className="text-white/40 text-sm mt-1">Choose a note from the left panel</p>
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>
