@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js'
 import { Pie, Bar } from 'react-chartjs-2'
 import toast from 'react-hot-toast'
+import '../css/dashboard.css'
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title)
