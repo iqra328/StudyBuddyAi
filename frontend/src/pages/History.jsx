@@ -4,6 +4,9 @@ import Sidebar from '../components/Sidebar'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
+// ✅ Production API URL
+const API_URL = 'https://studybuddyai-1.onrender.com/api'
+
 const History = () => {
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(true)
@@ -24,7 +27,8 @@ const History = () => {
         return
       }
       
-      const response = await axios.get('http://localhost:5000/api/history/all', {
+      // ✅ Fixed: Using production API URL
+      const response = await axios.get(`${API_URL}/history/all`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       
@@ -41,7 +45,8 @@ const History = () => {
   const deleteHistoryItem = async (id, type) => {
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:5000/api/history/${id}/${type}`, {
+      // ✅ Fixed: Using production API URL
+      await axios.delete(`${API_URL}/history/${id}/${type}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       toast.success('Deleted successfully')
@@ -58,6 +63,16 @@ const History = () => {
     if (filter === 'quizzes') return item.type === 'quiz'
     return true
   })
+
+  // Helper function to get icon
+  const getIcon = (item) => {
+    if (item.icon) return item.icon
+    if (item.type === 'note') return '📤'
+    if (item.type === 'quiz') return '📝'
+    if (item.action === 'Uploaded') return '📤'
+    if (item.action === 'Generated Quiz') return '📝'
+    return '📌'
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500">
@@ -127,18 +142,18 @@ const History = () => {
             <div className="space-y-3">
               {filteredHistory.map((item, index) => (
                 <motion.div
-                  key={item.id}
+                  key={item.id || index}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all group"
                 >
-                  <div className="flex items-center">
-                    <div className="text-3xl mr-4">{item.icon || (item.type === 'note' ? '📤' : '📝')}</div>
+                  <div className="flex items-center flex-1">
+                    <div className="text-3xl mr-4">{getIcon(item)}</div>
                     <div>
-                      <p className="text-white font-medium">{item.title}</p>
+                      <p className="text-white font-medium">{item.title || item.action || 'Activity'}</p>
                       <p className="text-white/50 text-sm">
-                        {new Date(item.date).toLocaleDateString()} • {item.action}
+                        {item.date ? new Date(item.date).toLocaleDateString() : 'Recent'} • {item.action || 'Activity'}
                       </p>
                       {item.details && (
                         <p className="text-white/40 text-xs mt-1">{item.details}</p>
@@ -148,8 +163,9 @@ const History = () => {
                   <button
                     onClick={() => deleteHistoryItem(item.id, item.type)}
                     className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-all px-3 py-1 rounded-lg"
+                    title="Delete"
                   >
-                    🗑️ Delete
+                    🗑️
                   </button>
                 </motion.div>
               ))}
