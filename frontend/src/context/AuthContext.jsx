@@ -6,11 +6,8 @@ const AuthContext = createContext()
 
 export const useAuth = () => useContext(AuthContext)
 
-// ✅ Production API URL - COMMENT OUT old one, USE this
+// Production API URL
 const API = 'https://studybuddyai-1.onrender.com/api'
-// const API = 'http://localhost:5000/api'  // <- COMMENT THIS LINE
-
-console.log('🔧 Using API URL:', API) // Debug check
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
@@ -92,8 +89,9 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out')
   }
 
+  // ✅ Provide setUser as well
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, login, signup, logout, loading }}>
       {children}
     </AuthContext.Provider>
   )

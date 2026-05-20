@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
-// ✅ Production API URL
 const API_URL = 'https://studybuddyai-1.onrender.com/api'
 
 const Profile = () => {
@@ -38,14 +37,6 @@ const Profile = () => {
       setStats(response.data)
     } catch (error) {
       console.error('Error fetching stats:', error)
-      // Fallback stats
-      setStats({
-        totalNotes: 5,
-        totalQuizzes: 3,
-        totalSummaries: 2,
-        studyStreak: 7,
-        joinDate: user?.createdAt || new Date().toISOString()
-      })
     }
   }
 
@@ -57,7 +48,7 @@ const Profile = () => {
         { name, email },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setUser(response.data)
+      if (setUser) setUser(response.data)
       toast.success('Profile updated successfully!')
       setIsEditing(false)
     } catch (error) {
@@ -72,13 +63,11 @@ const Profile = () => {
     const file = e.target.files[0]
     if (!file) return
 
-    // Check file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file')
       return
     }
 
-    // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size should be less than 2MB')
       return
@@ -97,7 +86,9 @@ const Profile = () => {
         }
       })
       setProfilePic(response.data.profilePicture)
-      setUser(prev => ({ ...prev, profilePicture: response.data.profilePicture }))
+      if (setUser) {
+        setUser(prev => ({ ...prev, profilePicture: response.data.profilePicture }))
+      }
       toast.success('Profile picture updated!')
     } catch (error) {
       console.error('Upload error:', error)
@@ -114,14 +105,13 @@ const Profile = () => {
     { name: 'AI Explorer', icon: '🤖', completed: stats.totalSummaries > 0 },
   ]
 
-  const joinDate = new Date(stats.joinDate)
-  const memberSince = joinDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const memberSince = stats.joinDate ? new Date(stats.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2024'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500">
+    <div className="dashboard-container">
       <Sidebar />
       
-      <div className="ml-64 p-8">
+      <div className="dashboard-main">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
