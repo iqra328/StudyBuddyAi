@@ -12,7 +12,10 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'https://boisterous-lollipop-2d37dd.netlify.app',
   'https://*.netlify.app',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',  // ✅ ADD THIS LINE
+  'http://localhost:3000'
 ].filter(Boolean);
 
 app.use(cors({
