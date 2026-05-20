@@ -4,6 +4,9 @@ import Sidebar from '../components/Sidebar'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
+// ✅ Production API URL
+const API_URL = 'https://studybuddyai-1.onrender.com/api'
+
 const Quizzes = () => {
   const [quizzes, setQuizzes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,7 +31,8 @@ const Quizzes = () => {
         return
       }
       
-      const response = await axios.get('http://localhost:5000/api/ai/quizzes', {
+      // ✅ Fixed: Using production API URL
+      const response = await axios.get(`${API_URL}/ai/quizzes`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       
@@ -45,7 +49,6 @@ const Quizzes = () => {
 
   const startQuiz = (quiz) => {
     console.log('Starting quiz:', quiz)
-    // Make sure quiz has questions array
     if (!quiz.questions || quiz.questions.length === 0) {
       toast.error('This quiz has no questions')
       return
@@ -70,7 +73,6 @@ const Quizzes = () => {
       return
     }
     
-    // Check if all questions answered
     if (Object.keys(answers).length !== selectedQuiz.questions.length) {
       toast.error(`Please answer all ${selectedQuiz.questions.length} questions`)
       return
@@ -78,8 +80,9 @@ const Quizzes = () => {
 
     try {
       const token = localStorage.getItem('token')
+      // ✅ Fixed: Using production API URL
       const response = await axios.post(
-        `http://localhost:5000/api/ai/quiz/${selectedQuiz._id}/submit`,
+        `${API_URL}/ai/quiz/${selectedQuiz._id}/submit`,
         { answers: Object.values(answers), timeTaken: 0 },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -87,8 +90,6 @@ const Quizzes = () => {
       setResult(response.data)
       setSubmitted(true)
       toast.success(response.data.message)
-      
-      // Refresh quiz list to update attempts
       fetchQuizzes()
     } catch (error) {
       console.error('Error submitting quiz:', error)
@@ -133,11 +134,7 @@ const Quizzes = () => {
       
       <div className="ml-64 p-8">
         {!selectedQuiz ? (
-          // Quiz List View
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-white">📝 AI Quizzes</h1>
@@ -196,7 +193,6 @@ const Quizzes = () => {
             </div>
           </motion.div>
         ) : submitted ? (
-          // Result View
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -218,71 +214,35 @@ const Quizzes = () => {
                'Keep learning! Try again to improve! 📖'}
             </p>
             <div className="flex gap-4 justify-center">
-              <button
-                onClick={resetQuiz}
-                className="px-6 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:shadow-lg transition-all"
-              >
+              <button onClick={resetQuiz} className="px-6 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:shadow-lg transition-all">
                 Back to Quizzes
               </button>
-              <button
-                onClick={() => startQuiz(selectedQuiz)}
-                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
-              >
+              <button onClick={() => startQuiz(selectedQuiz)} className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
                 Retry Quiz
               </button>
             </div>
           </motion.div>
         ) : (
-          // Quiz Taking View
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6"
-          >
-            {/* Progress Bar */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/10 backdrop-blur-lg rounded-2xl p-6">
             <div className="mb-6">
               <div className="flex justify-between text-white/70 text-sm mb-2">
                 <span>Question {currentQuestion + 1} of {selectedQuiz.questions?.length || 0}</span>
                 <span>{Math.round((Object.keys(answers).length / (selectedQuiz.questions?.length || 1)) * 100)}% Complete</span>
               </div>
               <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
-                  style={{ width: `${(Object.keys(answers).length / (selectedQuiz.questions?.length || 1)) * 100}%` }}
-                ></div>
+                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style={{ width: `${(Object.keys(answers).length / (selectedQuiz.questions?.length || 1)) * 100}%` }}></div>
               </div>
             </div>
 
-            {/* Current Question */}
             <AnimatePresence mode="wait">
-              <motion.div
-                key={currentQuestion}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="mb-6"
-              >
+              <motion.div key={currentQuestion} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="mb-6">
                 <h3 className="text-xl font-bold text-white mb-4">
                   {selectedQuiz.questions?.[currentQuestion]?.question || 'Loading question...'}
                 </h3>
                 <div className="space-y-3">
                   {selectedQuiz.questions?.[currentQuestion]?.options?.map((option, idx) => (
-                    <label
-                      key={idx}
-                      className={`flex items-center p-4 rounded-xl cursor-pointer transition-all ${
-                        answers[currentQuestion] === idx
-                          ? 'bg-purple-600/50 border-2 border-purple-400'
-                          : 'bg-white/10 hover:bg-white/20'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="question"
-                        value={idx}
-                        checked={answers[currentQuestion] === idx}
-                        onChange={() => handleAnswer(currentQuestion, idx)}
-                        className="mr-3 w-4 h-4"
-                      />
+                    <label key={idx} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all ${answers[currentQuestion] === idx ? 'bg-purple-600/50 border-2 border-purple-400' : 'bg-white/10 hover:bg-white/20'}`}>
+                      <input type="radio" name="question" value={idx} checked={answers[currentQuestion] === idx} onChange={() => handleAnswer(currentQuestion, idx)} className="mr-3 w-4 h-4" />
                       <span className="text-white">{option}</span>
                     </label>
                   ))}
@@ -290,49 +250,26 @@ const Quizzes = () => {
               </motion.div>
             </AnimatePresence>
 
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
-              <button
-                onClick={prevQuestion}
-                disabled={currentQuestion === 0}
-                className="px-6 py-2 bg-white/20 rounded-lg text-white font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/30 transition-all"
-              >
+              <button onClick={prevQuestion} disabled={currentQuestion === 0} className="px-6 py-2 bg-white/20 rounded-lg text-white font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/30 transition-all">
                 ← Previous
               </button>
-              
               {currentQuestion === (selectedQuiz.questions?.length || 0) - 1 ? (
-                <button
-                  onClick={submitQuiz}
-                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
-                >
+                <button onClick={submitQuiz} className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
                   Submit Quiz ✅
                 </button>
               ) : (
-                <button
-                  onClick={nextQuestion}
-                  className="px-6 py-2 bg-white/20 rounded-lg text-white font-semibold hover:bg-white/30 transition-all"
-                >
+                <button onClick={nextQuestion} className="px-6 py-2 bg-white/20 rounded-lg text-white font-semibold hover:bg-white/30 transition-all">
                   Next →
                 </button>
               )}
             </div>
 
-            {/* Question Navigator */}
             <div className="mt-6 pt-6 border-t border-white/10">
               <p className="text-white/50 text-sm mb-3">Quick Navigation</p>
               <div className="flex gap-2 flex-wrap">
                 {selectedQuiz.questions?.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentQuestion(idx)}
-                    className={`w-10 h-10 rounded-lg font-semibold transition-all ${
-                      currentQuestion === idx
-                        ? 'bg-purple-600 text-white'
-                        : answers[idx] !== undefined
-                        ? 'bg-green-500/50 text-white'
-                        : 'bg-white/20 text-white/70 hover:bg-white/30'
-                    }`}
-                  >
+                  <button key={idx} onClick={() => setCurrentQuestion(idx)} className={`w-10 h-10 rounded-lg font-semibold transition-all ${currentQuestion === idx ? 'bg-purple-600 text-white' : answers[idx] !== undefined ? 'bg-green-500/50 text-white' : 'bg-white/20 text-white/70 hover:bg-white/30'}`}>
                     {idx + 1}
                   </button>
                 ))}
