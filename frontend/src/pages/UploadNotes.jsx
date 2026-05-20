@@ -6,6 +6,9 @@ import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import '../css/upload.css'
 
+// ✅ API URL - Production
+const API_URL = 'https://studybuddyai-1.onrender.com/api'
+
 const UploadNotes = () => {
   const [files, setFiles] = useState([])
   const [uploading, setUploading] = useState(false)
@@ -52,35 +55,34 @@ const UploadNotes = () => {
       const fileItem = files[i]
       const formData = new FormData()
       
-      // Update progress for current file
       setFiles(prev => prev.map((f, idx) => 
         idx === i ? { ...f, progress: 10, status: 'uploading' } : f
       ))
       
       try {
-        // Append file and metadata
         formData.append('file', fileItem.file)
-        formData.append('title', fileItem.name.replace(/\.[^/.]+$/, '')) // Remove extension
+        formData.append('title', fileItem.name.replace(/\.[^/.]+$/, ''))
         formData.append('category', 'Study Notes')
         formData.append('fileName', fileItem.name)
         formData.append('fileType', fileItem.file.type)
         
-        // Update progress to 50%
         setFiles(prev => prev.map((f, idx) => 
           idx === i ? { ...f, progress: 50 } : f
         ))
         
-        // Make API call to backend
-        const response = await axios.post('http://localhost:5000/api/notes', formData, {
+        // ✅ FIXED: Using production API URL
+        const response = await axios.post(`${API_URL}/notes`, formData, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           },
           onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            setFiles(prev => prev.map((f, idx) => 
-              idx === i ? { ...f, progress: 50 + (percentCompleted / 2) } : f
-            ))
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              setFiles(prev => prev.map((f, idx) => 
+                idx === i ? { ...f, progress: 50 + (percentCompleted / 2) } : f
+              ))
+            }
           }
         })
         
@@ -89,12 +91,11 @@ const UploadNotes = () => {
             idx === i ? { ...f, progress: 100, status: 'completed' } : f
           ))
           uploadedCount++
-          console.log('Uploaded:', response.data)
+          console.log('✅ Uploaded:', response.data)
         }
         
       } catch (error) {
-        console.error('Upload error for file:', fileItem.name, error)
-        console.error('Error response:', error.response?.data)
+        console.error('❌ Upload error for file:', fileItem.name, error)
         
         let errorMessage = 'Upload failed'
         if (error.response?.data?.message) {
@@ -104,14 +105,13 @@ const UploadNotes = () => {
         }
         
         setFiles(prev => prev.map((f, idx) => 
-          idx === i ? { ...f, status: 'failed', error: errorMessage } : f
+          idx === i ? { ...f, status: 'failed', error: errorMessage, progress: 0 } : f
         ))
         failedCount++
         toast.error(`${fileItem.name}: ${errorMessage}`)
       }
     }
     
-    // Show final summary
     if (uploadedCount > 0) {
       toast.success(`✅ ${uploadedCount} file(s) uploaded successfully!`)
     }
@@ -121,7 +121,6 @@ const UploadNotes = () => {
     
     setUploading(false)
     
-    // Clear successful files after 3 seconds
     setTimeout(() => {
       setFiles(prev => prev.filter(f => f.status !== 'completed'))
     }, 3000)
