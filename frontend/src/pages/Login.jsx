@@ -21,7 +21,7 @@ const Login = () => {
     setLoading(true)
     const success = await login(email, password)
     setLoading(false)
-    if (success) navigate('/')
+    if (success) window.location.href = '/'
   }
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -35,7 +35,7 @@ const Login = () => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       
       toast.success('Logged in with Google! 🎉')
-      navigate('/')
+    window.location.href = '/'
     } catch (error) {
       console.error('Google auth error:', error)
       toast.error('Google login failed')

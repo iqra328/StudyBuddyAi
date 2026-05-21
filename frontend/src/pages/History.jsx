@@ -3,6 +3,7 @@ import axios from 'axios'
 import Sidebar from '../components/Sidebar'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import '../css/dashboard.css'  
 
 // ✅ Production API URL
 const API_URL = 'https://studybuddyai-1.onrender.com/api'
@@ -75,10 +76,9 @@ const History = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-red-500">
+     <div className="dashboard-container">
       <Sidebar />
-      
-      <div className="ml-64 p-8">
+      <div className="dashboard-main">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../context/AuthContext'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import '../css/dashboard.css';   // ✅ Add this if missing
 
 const API_URL = 'https://studybuddyai-1.onrender.com/api'
 
@@ -108,11 +109,9 @@ const Profile = () => {
   const memberSince = stats.joinDate ? new Date(stats.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'January 2024'
 
   return (
-    <div className="dashboard-container">
+      <div className="dashboard-container">
       <Sidebar />
-      
-      {/* Main Content with margin to avoid sidebar overlap */}
-      <div style={{ marginLeft: '280px', padding: '30px', minHeight: '100vh' }}>
+      <div className="dashboard-main">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -3,6 +3,7 @@ import axios from 'axios'
 import Sidebar from '../components/Sidebar'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import '../css/dashboard.css'   // ✅ IMPORTANT
 
 const API_URL = 'https://studybuddyai-1.onrender.com/api'
 
@@ -21,17 +22,15 @@ const Summaries = () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      
       if (!token) {
         toast.error('Please login first')
         setLoading(false)
         return
       }
-
       const response = await axios.get(`${API_URL}/notes`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      
+      console.log('Fetched notes:', response.data)
       setNotes(response.data || [])
     } catch (error) {
       console.error('Error fetching notes:', error)
@@ -43,28 +42,17 @@ const Summaries = () => {
 
   const generateSummary = async (note) => {
     if (!note) return
-    
     setGenerating(true)
     toast.loading('Generating AI summary...', { id: 'summary' })
-    
     try {
       const token = localStorage.getItem('token')
-      
       const response = await axios.post(`${API_URL}/ai/summary`, 
         { noteId: note._id, type: 'detailed' },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      
       setSummary(response.data.summary)
-      toast.success('Summary generated successfully!', { id: 'summary' })
-      
-      const updatedNotes = notes.map(n => 
-        n._id === note._id ? { ...n, hasSummary: true } : n
-      )
-      setNotes(updatedNotes)
-      
+      toast.success('Summary generated!', { id: 'summary' })
     } catch (error) {
-      console.error('Error generating summary:', error)
       toast.error('Failed to generate summary', { id: 'summary' })
     } finally {
       setGenerating(false)
@@ -74,7 +62,7 @@ const Summaries = () => {
   const copySummary = () => {
     if (summary) {
       navigator.clipboard.writeText(summary)
-      toast.success('Copied to clipboard!')
+      toast.success('Copied!')
     }
   }
 
@@ -84,10 +72,8 @@ const Summaries = () => {
       const file = new Blob([summary], { type: 'text/plain' })
       element.href = URL.createObjectURL(file)
       element.download = `${selectedNote?.title || 'summary'}.txt`
-      document.body.appendChild(element)
       element.click()
-      document.body.removeChild(element)
-      toast.success('Downloaded successfully!')
+      toast.success('Downloaded!')
     }
   }
 
@@ -95,10 +81,8 @@ const Summaries = () => {
     return (
       <div className="dashboard-container">
         <Sidebar />
-        <div style={{ marginLeft: '280px', padding: '30px' }}>
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-          </div>
+        <div className="dashboard-main" style={{ textAlign: 'center', paddingTop: '50px' }}>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
         </div>
       </div>
     )
@@ -107,138 +91,69 @@ const Summaries = () => {
   return (
     <div className="dashboard-container">
       <Sidebar />
-      
-      {/* Main Content - with margin to avoid sidebar overlap */}
-      <div style={{ marginLeft: '280px', padding: '30px', minHeight: '100vh' }}>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-white">🤖 AI Summaries</h1>
-          <p className="text-white/70 mt-2">Generate smart summaries from your study notes</p>
-        </motion.div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Notes List Panel */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden"
-          >
-            <div className="p-5 border-b border-white/10">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                📚 Your Notes
-                <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{notes.length}</span>
-              </h2>
-            </div>
-            
-            <div className="p-4" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-              {notes.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-5xl mb-3">📭</div>
-                  <p className="text-white/60">No notes found</p>
-                  <p className="text-white/40 text-sm mt-1">Upload some notes first</p>
+      <div className="dashboard-main">
+        <h1 className="text-3xl font-bold text-white mb-4">🤖 AI Summaries</h1>
+        <p className="text-white/70 mb-6">Generate smart summaries from your study notes</p>
+
+        {notes.length === 0 ? (
+          <div className="bg-white/10 rounded-xl p-8 text-center">
+            <p className="text-white/60">No notes found. Please upload some notes first.</p>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Notes List */}
+            <div className="bg-white/10 rounded-xl p-4 max-h-96 overflow-auto">
+              <h2 className="text-white font-semibold mb-3">Your Notes</h2>
+              {notes.map(note => (
+                <div
+                  key={note._id}
+                  onClick={() => {
+                    setSelectedNote(note)
+                    setSummary(note.summary?.detailed || '')
+                  }}
+                  className={`p-3 rounded-lg cursor-pointer mb-2 ${
+                    selectedNote?._id === note._id ? 'bg-purple-600/40' : 'hover:bg-white/10'
+                  }`}
+                >
+                  <p className="text-white">{note.title}</p>
+                  <p className="text-white/40 text-xs">{new Date(note.uploadedAt).toLocaleDateString()}</p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {notes.map(note => (
-                    <div 
-                      key={note._id}
-                      onClick={() => {
-                        setSelectedNote(note)
-                        setSummary(note.summary?.detailed || '')
-                      }}
-                      className={`p-4 rounded-xl cursor-pointer transition-all duration-200 ${
-                        selectedNote?._id === note._id 
-                          ? 'bg-purple-600/40 border border-purple-500' 
-                          : 'bg-white/5 hover:bg-white/10 border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="text-white font-medium">{note.title}</p>
-                          <p className="text-white/40 text-xs mt-1">
-                            {new Date(note.uploadedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        {note.summary?.detailed && (
-                          <span className="text-green-400 text-xs bg-green-400/10 px-2 py-1 rounded-full">
-                            ✅ Done
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
-          </motion.div>
-          
-          {/* Summary Panel */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden"
-          >
-            <div className="p-5 border-b border-white/10">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                ✨ AI Generated Summary
-              </h2>
-            </div>
-            
-            <div className="p-5">
+
+            {/* Summary Area */}
+            <div className="bg-white/10 rounded-xl p-4">
+              <h2 className="text-white font-semibold mb-3">AI Summary</h2>
               {selectedNote ? (
                 <>
-                  <div className="mb-4 p-3 bg-purple-600/20 rounded-xl border border-purple-500/30">
-                    <p className="text-purple-300 text-sm">Selected Note</p>
-                    <p className="text-white font-medium">{selectedNote.title}</p>
-                  </div>
-                  
+                  <p className="text-purple-300 text-sm mb-2">Selected: {selectedNote.title}</p>
                   {!summary && !selectedNote.summary?.detailed && (
-                    <button 
+                    <button
                       onClick={() => generateSummary(selectedNote)}
                       disabled={generating}
-                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+                      className="bg-purple-600 px-4 py-2 rounded-lg text-white w-full"
                     >
-                      {generating ? '🤖 Generating...' : '✨ Generate Summary'}
+                      {generating ? 'Generating...' : 'Generate Summary'}
                     </button>
                   )}
-                  
                   {(summary || selectedNote.summary?.detailed) && (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-white/5 rounded-xl" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                        <p className="text-white/90 leading-relaxed whitespace-pre-wrap">
-                          {summary || selectedNote.summary?.detailed}
-                        </p>
+                    <>
+                      <div className="bg-black/20 p-3 rounded-lg max-h-80 overflow-auto mt-3">
+                        <p className="text-white/90 whitespace-pre-wrap">{summary || selectedNote.summary?.detailed}</p>
                       </div>
-                      <div className="flex gap-3">
-                        <button 
-                          onClick={copySummary} 
-                          className="flex-1 py-2.5 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-                        >
-                          📋 Copy
-                        </button>
-                        <button 
-                          onClick={downloadSummary} 
-                          className="flex-1 py-2.5 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-                        >
-                          💾 Download
-                        </button>
+                      <div className="flex gap-3 mt-3">
+                        <button onClick={copySummary} className="bg-white/20 px-3 py-1 rounded">📋 Copy</button>
+                        <button onClick={downloadSummary} className="bg-white/20 px-3 py-1 rounded">💾 Download</button>
                       </div>
-                    </div>
+                    </>
                   )}
                 </>
               ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📝</div>
-                  <p className="text-white/60">Select a note</p>
-                  <p className="text-white/40 text-sm mt-1">Choose a note from the left panel</p>
-                </div>
+                <p className="text-white/60">Select a note to see summary</p>
               )}
             </div>
-          </motion.div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

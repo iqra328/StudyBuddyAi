@@ -1,63 +1,54 @@
-.upload-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 30px;
-  margin-left: 280px;
-}
-
+/* upload.css – only component-specific styles, no background */
 .upload-area {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
   border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
-  padding: 60px;
-  text-align: center;
+  border-radius: 24px;
+  padding: 60px 20px;
   transition: all 0.3s ease;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
 }
-
 .upload-area:hover {
-  border-color: white;
-  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
 }
-
 .upload-area.dragging {
   border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.15);
 }
-
 .file-list {
   margin-top: 30px;
 }
-
 .file-item {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border-radius: 15px;
+  border-radius: 16px;
   padding: 15px 20px;
   margin-bottom: 12px;
   transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
-
 .file-item:hover {
   transform: translateX(5px);
   background: rgba(255, 255, 255, 0.15);
 }
-
 .progress-bar {
   height: 6px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
   overflow: hidden;
 }
-
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
   transition: width 0.3s ease;
   border-radius: 3px;
 }
-
 .progress-fill.bg-red-500 {
   background: #ef4444;
+}
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 40px 16px;
+  }
 }
