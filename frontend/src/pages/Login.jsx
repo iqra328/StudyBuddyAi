@@ -1,15 +1,19 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { motion } from 'framer-motion'
+import { GoogleLogin } from '@react-oauth/google'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 import '../css/login.css'
+
+const API_URL = 'https://studybuddyai-1.onrender.com/api'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login } = useAuth()  // ✅ Make sure this is here
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -18,6 +22,28 @@ const Login = () => {
     const success = await login(email, password)
     setLoading(false)
     if (success) navigate('/')
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/google`, {
+        credential: credentialResponse.credential
+      })
+      
+      const { token, user } = response.data
+      localStorage.setItem('token', token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      
+      toast.success('Logged in with Google! 🎉')
+      navigate('/')
+    } catch (error) {
+      console.error('Google auth error:', error)
+      toast.error('Google login failed')
+    }
+  }
+
+  const handleGoogleError = () => {
+    toast.error('Google login failed. Please try again.')
   }
 
   return (
@@ -88,12 +114,13 @@ const Login = () => {
         </div>
         
         <div className="social-login">
-          <button className="social-btn">
-            <span className="social-icon">G</span> Google
-          </button>
-          <button className="social-btn">
-            <span className="social-icon">f</span> Facebook
-          </button>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text="continue_with"
+            shape="circle"
+            width="250"
+          />
         </div>
         
         <div className="signup-link">

@@ -1,8 +1,13 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { GoogleLogin } from '@react-oauth/google'
+import axios from 'axios'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import '../css/login.css'
+
+const API_URL = 'https://studybuddyai-1.onrender.com/api'
 
 const Signup = () => {
   const [name, setName] = useState('')
@@ -13,7 +18,7 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
-  const { signup } = useAuth()
+  const { signup } = useAuth()  // ✅ Make sure this is here
   const navigate = useNavigate()
 
   const validateForm = () => {
@@ -58,7 +63,28 @@ const Signup = () => {
     if (success) navigate('/')
   }
 
-  // Password strength indicator
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/google`, {
+        credential: credentialResponse.credential
+      })
+      
+      const { token, user } = response.data
+      localStorage.setItem('token', token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      
+      toast.success('Signed up with Google! 🎉')
+      navigate('/')
+    } catch (error) {
+      console.error('Google auth error:', error)
+      toast.error('Google signup failed')
+    }
+  }
+
+  const handleGoogleError = () => {
+    toast.error('Google signup failed. Please try again.')
+  }
+
   const getPasswordStrength = () => {
     if (!password) return 0
     let strength = 0
@@ -84,11 +110,8 @@ const Signup = () => {
         </div>
         
         <form onSubmit={handleSubmit}>
-          {/* Name Field */}
           <div className="input-group">
-            <label className="input-label">
-              <span className="label-icon">👤</span> Full Name
-            </label>
+            <label className="input-label">👤 Full Name</label>
             <input
               type="text"
               placeholder="John Doe"
@@ -103,11 +126,8 @@ const Signup = () => {
             {errors.name && <div className="error-message">{errors.name}</div>}
           </div>
           
-          {/* Email Field */}
           <div className="input-group">
-            <label className="input-label">
-              <span className="label-icon">📧</span> Email Address
-            </label>
+            <label className="input-label">📧 Email Address</label>
             <input
               type="email"
               placeholder="student@example.com"
@@ -122,11 +142,8 @@ const Signup = () => {
             {errors.email && <div className="error-message">{errors.email}</div>}
           </div>
           
-          {/* Password Field */}
           <div className="input-group">
-            <label className="input-label">
-              <span className="label-icon">🔒</span> Password
-            </label>
+            <label className="input-label">🔒 Password</label>
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a strong password"
@@ -147,7 +164,6 @@ const Signup = () => {
             </button>
           </div>
           
-          {/* Password Strength Indicator */}
           {password && (
             <div className="password-strength">
               <div className="strength-bars">
@@ -162,15 +178,11 @@ const Signup = () => {
               <div className="strength-text" style={{ color: strengthColors[passwordStrength - 1] }}>
                 Password Strength: {strengthLabels[passwordStrength - 1]}
               </div>
-              {errors.password && <div className="error-message">{errors.password}</div>}
             </div>
           )}
           
-          {/* Confirm Password Field */}
           <div className="input-group">
-            <label className="input-label">
-              <span className="label-icon">✅</span> Confirm Password
-            </label>
+            <label className="input-label">✅ Confirm Password</label>
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm your password"
@@ -192,15 +204,13 @@ const Signup = () => {
             {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
           </div>
           
-          {/* Terms Agreement */}
           <div className="terms-agreement">
             <label className="checkbox-label">
               <input type="checkbox" required />
-              <span>I agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link></span>
+              <span>I agree to the Terms of Service and Privacy Policy</span>
             </label>
           </div>
           
-          {/* Submit Button */}
           <button 
             type="submit" 
             className={`login-btn ${loading ? 'loading' : ''}`}
@@ -214,20 +224,16 @@ const Signup = () => {
           <span>OR</span>
         </div>
         
-        {/* Social Signup */}
         <div className="social-login">
-          <button className="social-btn">
-            <span className="social-icon">G</span> Google
-          </button>
-          <button className="social-btn">
-            <span className="social-icon">f</span> Facebook
-          </button>
-          <button className="social-btn">
-            <span className="social-icon">🐙</span> GitHub
-          </button>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text="signup_with"
+            shape="circle"
+            width="250"
+          />
         </div>
         
-        {/* Login Link */}
         <div className="signup-link">
           Already have an account?{' '}
           <Link to="/login">Sign In</Link>
